@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch công tác tuần - Tự động nhảy trang</title>
+    <style>
+        :root {
+            --primary-red: #a01d1d;
+        }
+        body {
+            margin: 0; padding: 0;
+            font-family: "Times New Roman", Times, serif;
+            background-color: #fff;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Trong_dong_Ngoc_Lu_1.jpg/800px-Trong_dong_Ngoc_Lu_1.jpg');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-attachment: fixed;
+            background-size: 50%;
+            background-blend-mode: overlay;
+        }
+        .container {
+            width: 98%; margin: 10px auto;
+            background-color: rgba(255, 255, 255, 0.92);
+            border: 2px solid var(--primary-red);
+            min-height: 95vh;
+            position: relative;
+        }
+        header { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; }
+        .banner { background-color: var(--primary-red); color: white; padding: 10px 40px; border-radius: 5px; text-align: center; }
+        .clock-section { text-align: right; color: var(--primary-red); font-weight: bold; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background-color: var(--primary-red); color: white; padding: 12px; border: 1px solid #ccc; }
+        td { border: 1px solid #ccc; padding: 12px; font-size: 18px; vertical-align: middle; }
+
+        /* Hiệu ứng chuyển trang */
+        .page { display: none; } /* Mặc định ẩn tất cả các trang */
+        .page.active { display: table-row-group; animation: fadeIn 0.5s; } /* Hiện trang có class active */
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .page-info {
+            position: fixed; bottom: 40px; right: 20px;
+            background: var(--primary-red); color: white;
+            padding: 5px 15px; border-radius: 20px; font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Flag_of_Vietnam.svg/125px-Flag_of_Vietnam.svg.png" width="60">
+        <div class="banner">
+            <h1 style="margin:0; font-size: 22px;">THÔNG BÁO: LỊCH CÔNG TÁC TUẦN</h1>
+            <p style="margin:5px 0 0;">Từ ngày 16/03/2026 đến ngày 22/03/2026</p>
+        </div>
+        <div class="clock-section">
+            <div>BAN TỔ CHỨC TỈNH ỦY</div>
+            <div id="digital-clock" style="font-size: 24px;">00:00:00</div>
+        </div>
+    </header>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Thứ/Ngày</th>
+                <th>Buổi</th>
+                <th>Thời gian</th>
+                <th>Nội dung công việc</th>
+                <th>Chủ trì</th>
+                <th>Địa điểm</th>
+            </tr>
+        </thead>
+
+        <tbody class="page active">
+            <tr>
+                <td rowspan="2" style="text-align:center; font-weight:bold; color:red;">THỨ HAI<br>16/03</td>
+                <td>Sáng</td><td>08:00</td><td>Họp giao ban lãnh đạo Ban</td><td>Trưởng ban</td><td>Phòng họp số 1</td>
+            </tr>
+            <tr>
+                <td>Chiều</td><td>14:00</td><td>Duyệt nội dung đại hội cơ sở</td><td>Các PTB</td><td>Phòng làm việc</td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:bold; color:red;">THỨ BA<br>17/03</td>
+                <td>Sáng</td><td>07:30</td><td>Đi cơ sở kiểm tra công tác cán bộ</td><td>Đoàn công tác</td><td>Huyện ủy Thuận Châu</td>
+            </tr>
+        </tbody>
+
+        <tbody class="page">
+            <tr>
+                <td rowspan="2" style="text-align:center; font-weight:bold; color:red;">THỨ TƯ<br>18/03</td>
+                <td>Sáng</td><td>08:00</td><td>Tập huấn phần mềm quản lý Đảng viên</td><td>Phòng Tổ chức</td><td>Hội trường tầng 3</td>
+            </tr>
+            <tr>
+                <td>Chiều</td><td>15:00</td><td>Hội nghị cán bộ chủ chốt</td><td>Lãnh đạo Ban</td><td>TTHN Tỉnh</td>
+            </tr>
+            <tr>
+                <td style="text-align:center; font-weight:bold; color:red;">THỨ NĂM<br>19/03</td>
+                <td>Sáng</td><td>08:00</td><td>Tiếp công dân định kỳ</td><td>Trực lãnh đạo</td><td>Phòng tiếp dân</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="page-info" id="pageDisplay">Trang 1/2</div>
+</div>
+
+<script>
+    // 1. Đồng hồ
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('digital-clock').textContent = now.toLocaleTimeString('vi-VN');
+    }
+    setInterval(updateClock, 1000);
+
+    // 2. Logic nhảy trang
+    let currentPage = 0;
+    const pages = document.querySelectorAll('.page');
+    const pageDisplay = document.getElementById('pageDisplay');
+
+    function showNextPage() {
+        // Ẩn trang hiện tại
+        pages[currentPage].classList.remove('active');
+        
+        // Tính toán trang tiếp theo
+        currentPage = (currentPage + 1) % pages.length;
+        
+        // Hiển thị trang mới
+        pages[currentPage].classList.add('active');
+        
+        // Cập nhật số trang hiển thị
+        pageDisplay.textContent = `Trang ${currentPage + 1}/${pages.length}`;
+    }
+
+    // Thiết lập thời gian nhảy trang (15000ms = 15 giây)
+    setInterval(showNextPage, 15000);
+</script>
+
+</body>
+</html>
